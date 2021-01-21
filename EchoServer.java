@@ -32,6 +32,8 @@
 import java.net.*;
 import java.io.*;
 
+
+
 public class EchoServer {
     public static void main(String[] args) throws IOException {
         
@@ -41,24 +43,109 @@ public class EchoServer {
         }
         
         int portNumber = Integer.parseInt(args[0]);
-        
+     //   while(true) //while loop for continuously checking for new client connections
+            //when it detects a connection, create a socket in a thread for that connection
+    //    {//while loop start
         try (
-            ServerSocket serverSocket =
-                new ServerSocket(Integer.parseInt(args[0]));
-            Socket clientSocket = serverSocket.accept();     
-            PrintWriter out =
-                new PrintWriter(clientSocket.getOutputStream(), true);                   
-            BufferedReader in = new BufferedReader(
-                new InputStreamReader(clientSocket.getInputStream()));
-        ) {
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                out.println(inputLine);
+                //accept a connection
+                //create a thread to deal with the client
+            ServerSocket serverSocket = new ServerSocket(Integer.parseInt(args[0]));
+            Socket clientSocket = serverSocket.accept();   
+                
+            DataOutputStream toClient = new DataOutputStream(clientSocket.getOutputStream());                   
+            DataInputStream fromClient = 
+                    new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));           
+        ) { //loop should read a character at a time from the and immediately send it back
+            System.out.println("Connection with client established");    
+            char charFromClient;
+            String userInput;
+            int quitProgression = 0;
+            int stringLength, index;
+            while ((userInput = fromClient.readLine()) != null && quitProgression < 4) {
+                //inner loop for going along the length of the string
+                stringLength = userInput.length();
+                for(index = 0; index < stringLength; index++)
+                {
+                    //get the char we want to currently look at
+                    charFromClient = userInput.charAt(index);
+                                    
+                    //if the character is non-alphabetical, do not print it back
+                   // if(Character.isLetter(charFromClient))
+                    if((charFromClient >= 'a' && charFromClient <= 'z') ||
+                         (charFromClient >= 'A' && charFromClient <= 'Z'))
+                    {
+                        toClient.writeChar(charFromClient);
+                        //check if the letters 'q' 'u' 'i' 't' have been typed in succession
+                        //skip over if non alphabetic char                       
+                        if(quitProgression == 0)
+                        {
+                            if(charFromClient == 'q' || charFromClient == 'Q')
+                            {
+                                quitProgression += 1;
+                            }
+                            else
+                            {
+                                quitProgression = 0; 
+                            }
+                        }
+                        else if(quitProgression == 1)
+                        {
+                            if(charFromClient == 'u' || charFromClient == 'U')
+                            {
+                                quitProgression += 1;
+                            }
+                            else
+                            {
+                                quitProgression = 0; 
+                            }                        
+                        }
+                        else if(quitProgression == 2)
+                        {
+                            if(charFromClient == 'i' || charFromClient == 'I')
+                            {
+                                quitProgression += 1;
+                            }
+                            else
+                            {
+                                quitProgression = 0; 
+                            }                        
+                        }
+                        else
+                        {
+                            if(charFromClient == 't' || charFromClient == 'T')
+                            {
+                                quitProgression += 1;
+                                System.out.println("Quit sequence initiated" + quitProgression);
+                            }
+                            else
+                            {
+                                quitProgression = 0; 
+                            }                        
+                        }
+                    }
+                    else
+                    {
+                        toClient.writeChar(' '); 
+                    }
+                }
+                
             }
-        } catch (IOException e) {
+        } catch (IOException e)
+            {
             System.out.println("Exception caught when trying to listen on port "
                 + portNumber + " or listening for a connection");
             System.out.println(e.getMessage());
-        }
+            }
+     //   }//while loop end
+    }
+    
+    
+    private class EchoThread implements Runnable { 
+        
+        public void run() 
+        { 
+            System.out.println(Thread.currentThread().getName() 
+                             + ", executing run() method!"); 
+        } 
     }
 }
