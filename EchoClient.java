@@ -32,6 +32,8 @@
 import java.io.*;
 import java.net.*;
 
+
+
 public class EchoClient {
     public static void main(String[] args) throws IOException {
         
@@ -43,23 +45,33 @@ public class EchoClient {
 
         String hostName = args[0];
         int portNumber = Integer.parseInt(args[1]);
-
-        try (
+        
+        try {
             Socket echoSocket = new Socket(hostName, portNumber);
-            PrintWriter out =
-                new PrintWriter(echoSocket.getOutputStream(), true);
-            BufferedReader in =
-                new BufferedReader(
-                    new InputStreamReader(echoSocket.getInputStream()));
-            BufferedReader stdIn =
-                new BufferedReader(
-                    new InputStreamReader(System.in))
-        ) {
+            DataOutputStream toServer = new DataOutputStream(echoSocket.getOutputStream());
+            DataInputStream fromServer = new DataInputStream(echoSocket.getInputStream());
+            DataInputStream stdIn = new DataInputStream((System.in));
+            
             String userInput;
+
+            //loop to get input from user, and then send that input to server
             while ((userInput = stdIn.readLine()) != null) {
-                out.println(userInput);
-                System.out.println("echo: " + in.readLine());
-            }
+                toServer.writeBytes(userInput);
+                toServer.writeByte('\n');
+                System.out.println("echo: "); 
+                
+                //inner loop: get a byte from the server for each char in the string
+                int index;
+                for(index = 0; index < userInput.length(); index++)
+                {
+                    System.out.print(fromServer.readChar());   
+                }
+                System.out.println(""); //just printing a newline
+            }//loop end
+            fromServer.close();
+            toServer.close();
+            echoSocket.close();
+            stdIn.close();
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + hostName);
             System.exit(1);
