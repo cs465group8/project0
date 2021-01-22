@@ -34,10 +34,15 @@ public class EchoClient {
                 
                 //inner loop: get a byte from the server for each char in the string
                 int index;
+                char tempChar;
                 for(index = 0; index < userInput.length(); index++)
-                {
-                    System.out.print(fromServer.readChar());   
-                }
+                	{
+                	tempChar = fromServer.readChar();
+                	if(tempChar != ' ')
+                		{
+                		System.out.print(tempChar);
+                		}
+                	}
                 System.out.println(""); //just printing a newline
             }//loop end
             fromServer.close();
